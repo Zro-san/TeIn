@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poggies</title>
+
+    <style>
+        canvas {
+                background-color: rgba(0, 0, 0, 0.8);
+
+        }
+
+    </style>
+
+    <script>
+        let KEY_SPACE = false; //32
+        let KEY_UP = false; //38
+        let KEY_DOWN = false; //40
+        let canvas;
+        let ctx;
+        let backgroundImage = new Image();
+
+        let rocket = {
+            x:50,
+            y:200,
+            width: 100,
+            hight: 75,
+            src: 'img/rocket.png.png'
+        };
+        let ufos = [];
+        let lasers = [];
+
+
+        document.onkeydown = function(e) {
+            if (e.keyCode == 32) {
+                KEY_SPACE = true;
+            }
+            if (e.keyCode == 38) {
+                KEY_UP = true;
+            }
+            if (e.keyCode == 40) {
+                KEY_DOWN = true;
+            }
+        }; 
+        document.onkeyup = function(e) {
+            if (e.keyCode == 32) {
+                KEY_SPACE = false;
+            }
+            if (e.keyCode == 38) {
+                KEY_UP = false;
+            }
+            if (e.keyCode == 40) {
+                KEY_DOWN = false;
+            }
+        };   
+        
+        function startGame(){
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            loadImages();
+            setInterval(update, 1000 / 25);
+            setInterval(createUfos, 5000);
+            setInterval(checkForCollision, 1000 / 25);
+            setInterval(laser, 1000 / 10);
+            draw();
+        }
+
+        function checkForCollision() {
+            ufos.forEach(function(ufo) {
+
+                // Kontrollieren, ob UFO mit Rakete kollidiert
+                if (rocket.x + rocket.width > ufo.x &&
+                    rocket.y + rocket.height > ufo.y &&
+                    rocket.x < ufo.x &&
+                    rocket.y < ufo.y + ufo.height
+                ) {
+                    rocket.img.src = 'img/explosion.png';
+                    console.log('Collion!!!');
+                    ufos = ufos.filter(u => u != ufo);
+                }
+
+                lasers.forEach(function(laser) {
+                    // Kontrollieren, ob Laser mit Rakete kollidiert
+                    if (laser.x + laser.width > ufo.x &&
+                        laser.y + laser.height > ufo.y &&
+                        laser.x < ufo.x &&
+                        laser.y < ufo.y + ufo.height
+                    ) {
+                        ufo.hit = true;
+                        ufo.img.src = 'img/explosion.png';
+                        console.log('Collion!!!');
+
+                        setTimeout(() => {
+                            ufos = ufos.filter(u => u != ufo);
+                        }, 2000);
+                    }
+
+                });
+
+            });
+        }
+
+        function createUfos(){
+            let ufo = {
+            x:800,
+            y: Math.random() * 500,
+            width: 100,
+            hight: 40,
+            src: 'img/ufo.png',
+            img: new Image(),
+            };
+            ufo.img.src = ufo.src; // Ufo Bild wird geladen
+            ufos.push(ufo);
+        }
+        function laser() {            
+            if (KEY_SPACE) {
+                let laser = {
+                    x: rocket.x + 110,
+                    y: rocket.y + 22,
+                    width: 20,
+                    height: 4,
+                    src: 'img/laser.png',
+                    img: new Image()
+                };
+                laser.img.src = laser.src; 
+
+                lasers.push(laser);
+            }
+        }
+
+        function update(){
+            if(KEY_UP) {
+                rocket.y -= 4.5; 
+            }
+
+            if(KEY_DOWN) {
+                rocket.y += 4.5; 
+            }
+
+            ufos.forEach(function(ufo){
+                ufo.x -= 5;
+            });
+            lasers.forEach(function(laser) {
+                laser.x += 15;
+            });
+
+        }
+        function loadImages(){
+            backgroundImage.src = 'img/background.png';
+            rocket.img = new Image();
+            rocket.img.src = rocket.src;
+        }
+
+
+        function draw(){
+            ctx.drawImage(backgroundImage, 0, 0);
+            ctx.drawImage(rocket.img, rocket.x, rocket.y, rocket.width, rocket.hight);
+            
+            ufos.forEach(function(ufo) {
+                ctx.drawImage(ufo.img, ufo.x, ufo.y, ufo.width, ufo.hight)
+            });
+
+
+            lasers.forEach(function(laser) {
+                ctx.drawImage(laser.img, laser.x, laser.y, laser.width, laser.height);
+            });
+
+            requestAnimationFrame(draw);
+        }
+    </script>
+</head>
+<body onload="startGame()">
+    
+    <canvas id="canvas" width="720" height="480"></canvas>
+
+</body>
+</html>
